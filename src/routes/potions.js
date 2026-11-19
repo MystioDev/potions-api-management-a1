@@ -72,4 +72,29 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  try {
+    const { name, effect, isDangeorus } = req.body;
+    const [updating] = await db
+      .select()
+      .from(potions)
+      .where(eq(potions.id, req.params.id));
+    if (!updating) {
+      return res.status(404).json({
+        message: "nincs ilyen id",
+      });
+    }
+
+    await db
+      .update(potions)
+      .set({ name, effect, isDangeorus })
+      .where(eq(potions.id, req.params.id));
+    return res.status(200).json({
+      message: "sikeres update",
+    });
+  } catch (err) {
+    return renderErrorHandler(res, err);
+  }
+});
+
 module.exports = router;
