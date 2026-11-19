@@ -54,4 +54,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const [entry] = await db
+      .select()
+      .from(potions)
+      .where(eq(potions.id, +req.params.id));
+    if (!entry) {
+      return res.status(400).json({ message: "Nincs szevasz" });
+    }
+
+    await db.delete(potions).where(eq(potions.id, +req.params.id));
+
+    return res.status(200).json({ message: "sikeres torles" });
+  } catch (err) {
+    return renderErrorHandler(res, err);
+  }
+});
+
 module.exports = router;
