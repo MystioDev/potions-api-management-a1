@@ -1,5 +1,5 @@
 const express = require("express");
-const { eq } = require("drizzle-orm");
+const { eq, like, and } = require("drizzle-orm");
 const { potions } = require("../db/schema");
 const db = require("../db/db");
 const renderErrorHandler = require("../utilities/renderErrorHandler");
@@ -8,8 +8,32 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const allPotions = await db.select().from(potions);
-    return res.status(200).json(allPotions);
+    const { name, effect } = req.query;
+    let isDangeorus = req.query.isDangeorus;
+    // if (isDangeorus === "true"){
+    //     isDangeorus = true
+    // }
+    // else{
+    //     isDangeorus = false
+    // }
+
+    if (!name || !effect || !isDangeorus) {
+      const allPotions = await db.select().from(potions);
+      return res.status(200).json(allPotions);
+    }
+    isDangeorus = isDangeorus === "true";
+
+    const queryPotions = await db
+      .select()
+      .from(potions)
+      .where(
+        and(
+          like(potions.name, `%${name}%`),
+          like(potions.effect, `%${effect}%`),
+          eq(isDangeorus, potions.isDangeorus),
+        ),
+      );
+    return res.status(200).json(queryPotions);
   } catch (err) {
     return renderErrorHandler(res, err);
   }
